@@ -1031,3 +1031,115 @@ class DeletePeriodicNoteToolHandler(ToolHandler):
                 text=f"Successfully deleted {period} note"
             )
         ]
+
+class ListCommandsToolHandler(ToolHandler):
+    def __init__(self):
+        super().__init__("obsidian_get_commands")
+
+    def get_tool_description(self):
+        return Tool(
+            name=self.name,
+            description="List all available Obsidian commands from the command palette.",
+            inputSchema={
+                "type": "object",
+                "properties": {},
+                "required": []
+            }
+        )
+
+    def run_tool(self, args: dict) -> Sequence[TextContent | ImageContent | EmbeddedResource]:
+        api = obsidian.Obsidian(api_key=api_key, host=obsidian_host)
+        commands = api.list_commands()
+        
+        # Format the commands for better readability
+        commands_info = []
+        if commands and "commands" in commands:
+            for cmd in commands["commands"]:
+                cmd_id = cmd.get("id", "")
+                cmd_name = cmd.get("name", "")
+                commands_info.append(f"ID: {cmd_id} | Name: {cmd_name}")
+        
+        result = "\n".join(commands_info) if commands_info else "(no commands available)"
+        
+        return [
+            TextContent(
+                type="text",
+                text=result
+            )
+        ]
+
+class ExecuteCommandToolHandler(ToolHandler):
+    def __init__(self):
+        super().__init__("obsidian_execute_command")
+
+    def get_tool_description(self):
+        return Tool(
+            name=self.name,
+            description="Execute a specific Obsidian command by its ID. WARNING: Some commands may be destructive or change settings. Use with caution.",
+            inputSchema={
+                "type": "object",
+                "properties": {
+                    "command_id": {
+                        "type": "string",
+                        "description": "The ID of the command to execute (use obsidian_get_commands to see available IDs)"
+                    }
+                },
+                "required": ["command_id"]
+            }
+        )
+
+    def run_tool(self, args: dict) -> Sequence[TextContent | ImageContent | EmbeddedResource]:
+        if "command_id" not in args:
+            raise RuntimeError("command_id argument required")
+
+        api = obsidian.Obsidian(api_key=api_key, host=obsidian_host)
+        api.execute_command(args["command_id"])
+
+        return [
+            TextContent(
+                type="text",
+                text=f"Successfully executed command: {args['command_id']}"
+            )
+        ]
+
+class OpenFileToolHandler(ToolHandler):
+    def __init__(self):
+        super().__init__("obsidian_open_file")
+
+    def get_tool_description(self):
+        return Tool(
+            name=self.name,
+            description="Open a file in Obsidian UI, optionally in a new leaf (tab/pane).",
+            inputSchema={
+                "type": "object",
+                "properties": {
+                    "filename": {
+                        "type": "string",
+                        "description": "Path to the file to open (relative to vault root)"
+                    },
+                    "new_leaf": {
+                        "type": "boolean",
+                        "description": "If true, opens in new tab/pane; if false, opens in current view (default: false)",
+                        "default": False
+                    }
+                },
+                "required": ["filename"]
+            }
+        )
+
+    def run_tool(self, args: dict) -> Sequence[TextContent | ImageContent | EmbeddedResource]:
+        if "filename" not in args:
+            raise RuntimeError("filename argument required")
+
+        filename = args["filename"]
+        new_leaf = args.get("new_leaf", False)
+
+        api = obsidian.Obsidian(api_key=api_key, host=obsidian_host)
+        api.open_file(filename, new_leaf)
+
+        return [
+            TextContent(
+                type="text",
+                text=f"Successfully opened file: {filename} (new_leaf={new_leaf})"
+            )
+        ]

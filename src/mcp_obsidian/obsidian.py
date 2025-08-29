@@ -501,3 +501,60 @@ class Obsidian():
             return None
 
         return self._safe_call(call_fn)
+    
+    def list_commands(self) -> Any:
+        """List all available Obsidian commands from the command palette.
+        
+        Returns:
+            List of available commands with their IDs and names
+        """
+        url = f"{self.get_base_url()}/commands/"
+        
+        def call_fn():
+            response = requests.get(url, headers=self._get_headers(), verify=self.verify_ssl, timeout=self.timeout)
+            response.raise_for_status()
+            return response.json()
+            
+        return self._safe_call(call_fn)
+    
+    def execute_command(self, command_id: str) -> Any:
+        """Execute a specific Obsidian command by its ID.
+        
+        Args:
+            command_id: The ID of the command to execute
+            
+        Returns:
+            None on success
+            
+        Warning:
+            Some commands may be destructive or change Obsidian settings.
+            Use with caution and verify command IDs with list_commands().
+        """
+        url = f"{self.get_base_url()}/commands/{urllib.parse.quote(command_id)}/"
+        
+        def call_fn():
+            response = requests.post(url, headers=self._get_headers(), verify=self.verify_ssl, timeout=self.timeout)
+            response.raise_for_status()
+            return None
+            
+        return self._safe_call(call_fn)
+    
+    def open_file(self, filename: str, new_leaf: bool = False) -> Any:
+        """Open a file in Obsidian UI.
+        
+        Args:
+            filename: Path to the file to open (relative to vault root)
+            new_leaf: If True, opens in new tab/pane; if False, opens in current view
+            
+        Returns:
+            None on success
+        """
+        url = f"{self.get_base_url()}/open/{urllib.parse.quote(filename)}"
+        params = {"newLeaf": str(new_leaf).lower()} if new_leaf else {}
+        
+        def call_fn():
+            response = requests.post(url, headers=self._get_headers(), params=params, verify=self.verify_ssl, timeout=self.timeout)
+            response.raise_for_status()
+            return None
+            
+        return self._safe_call(call_fn)

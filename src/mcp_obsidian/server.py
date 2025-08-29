@@ -63,6 +63,9 @@ add_tool_handler(tools.AppendToPeriodicToolHandler())
 add_tool_handler(tools.ReplacePeriodicNoteToolHandler())
 add_tool_handler(tools.PatchPeriodicNoteToolHandler())
 add_tool_handler(tools.DeletePeriodicNoteToolHandler())
+add_tool_handler(tools.ListCommandsToolHandler())
+add_tool_handler(tools.ExecuteCommandToolHandler())
+add_tool_handler(tools.OpenFileToolHandler())
 
 @app.list_tools()
 async def list_tools() -> list[Tool]:
