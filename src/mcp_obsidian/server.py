@@ -54,6 +54,11 @@ add_tool_handler(tools.BatchGetFileContentsToolHandler())
 add_tool_handler(tools.PeriodicNotesToolHandler())
 add_tool_handler(tools.RecentPeriodicNotesToolHandler())
 add_tool_handler(tools.RecentChangesToolHandler())
+add_tool_handler(tools.GetActiveNoteToolHandler())
+add_tool_handler(tools.AppendToActiveToolHandler())
+add_tool_handler(tools.ReplaceActiveNoteToolHandler())
+add_tool_handler(tools.PatchActiveNoteToolHandler())
+add_tool_handler(tools.DeleteActiveNoteToolHandler())
 
 @app.list_tools()
 async def list_tools() -> list[Tool]:

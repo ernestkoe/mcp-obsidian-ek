@@ -630,3 +630,200 @@ class RecentChangesToolHandler(ToolHandler):
                 text=json.dumps(results, indent=2)
             )
         ]
+
+class GetActiveNoteToolHandler(ToolHandler):
+    def __init__(self):
+        super().__init__("obsidian_get_active")
+
+    def get_tool_description(self):
+        return Tool(
+            name=self.name,
+            description="Get content of the currently active note in Obsidian.",
+            inputSchema={
+                "type": "object",
+                "properties": {
+                    "as_json": {
+                        "type": "boolean",
+                        "description": "Whether to return JSON format with metadata (default: false)",
+                        "default": False
+                    }
+                }
+            }
+        )
+
+    def run_tool(self, args: dict) -> Sequence[TextContent | ImageContent | EmbeddedResource]:
+        as_json = args.get("as_json", False)
+        
+        api = obsidian.Obsidian(api_key=api_key, host=obsidian_host)
+        content = api.get_active_note(as_json)
+        
+        if as_json:
+            return [
+                TextContent(
+                    type="text",
+                    text=json.dumps(content, indent=2)
+                )
+            ]
+        else:
+            return [
+                TextContent(
+                    type="text",
+                    text=content
+                )
+            ]
+
+class AppendToActiveToolHandler(ToolHandler):
+    def __init__(self):
+        super().__init__("obsidian_post_active")
+
+    def get_tool_description(self):
+        return Tool(
+            name=self.name,
+            description="Append content to the currently active note.",
+            inputSchema={
+                "type": "object",
+                "properties": {
+                    "content": {
+                        "type": "string",
+                        "description": "Content to append to the active note"
+                    }
+                },
+                "required": ["content"]
+            }
+        )
+
+    def run_tool(self, args: dict) -> Sequence[TextContent | ImageContent | EmbeddedResource]:
+        if "content" not in args:
+            raise RuntimeError("content argument required")
+
+        api = obsidian.Obsidian(api_key=api_key, host=obsidian_host)
+        api.append_to_active(args["content"])
+
+        return [
+            TextContent(
+                type="text",
+                text="Successfully appended content to active note"
+            )
+        ]
+
+class ReplaceActiveNoteToolHandler(ToolHandler):
+    def __init__(self):
+        super().__init__("obsidian_put_active")
+
+    def get_tool_description(self):
+        return Tool(
+            name=self.name,
+            description="Replace entire content of the currently active note.",
+            inputSchema={
+                "type": "object",
+                "properties": {
+                    "content": {
+                        "type": "string",
+                        "description": "New content for the active note"
+                    }
+                },
+                "required": ["content"]
+            }
+        )
+
+    def run_tool(self, args: dict) -> Sequence[TextContent | ImageContent | EmbeddedResource]:
+        if "content" not in args:
+            raise RuntimeError("content argument required")
+
+        api = obsidian.Obsidian(api_key=api_key, host=obsidian_host)
+        api.replace_active_note(args["content"])
+
+        return [
+            TextContent(
+                type="text",
+                text="Successfully replaced content of active note"
+            )
+        ]
+
+class PatchActiveNoteToolHandler(ToolHandler):
+    def __init__(self):
+        super().__init__("obsidian_patch_active")
+
+    def get_tool_description(self):
+        return Tool(
+            name=self.name,
+            description="Insert content into active note relative to a heading, block reference, or frontmatter field.",
+            inputSchema={
+                "type": "object",
+                "properties": {
+                    "operation": {
+                        "type": "string",
+                        "description": "Operation to perform (append, prepend, or replace)",
+                        "enum": ["append", "prepend", "replace"]
+                    },
+                    "target_type": {
+                        "type": "string",
+                        "description": "Type of target to patch",
+                        "enum": ["heading", "block", "frontmatter"]
+                    },
+                    "target": {
+                        "type": "string",
+                        "description": "Target identifier (heading path, block reference, or frontmatter field)"
+                    },
+                    "content": {
+                        "type": "string",
+                        "description": "Content to insert"
+                    }
+                },
+                "required": ["operation", "target_type", "target", "content"]
+            }
+        )
+
+    def run_tool(self, args: dict) -> Sequence[TextContent | ImageContent | EmbeddedResource]:
+        if not all(k in args for k in ["operation", "target_type", "target", "content"]):
+            raise RuntimeError("operation, target_type, target and content arguments required")
+
+        api = obsidian.Obsidian(api_key=api_key, host=obsidian_host)
+        api.patch_active_note(
+            args.get("operation", ""),
+            args.get("target_type", ""),
+            args.get("target", ""),
+            args.get("content", "")
+        )
+
+        return [
+            TextContent(
+                type="text",
+                text="Successfully patched content in active note"
+            )
+        ]
+
+class DeleteActiveNoteToolHandler(ToolHandler):
+    def __init__(self):
+        super().__init__("obsidian_delete_active")
+
+    def get_tool_description(self):
+        return Tool(
+            name=self.name,
+            description="Delete the currently active note. Use with caution.",
+            inputSchema={
+                "type": "object",
+                "properties": {
+                    "confirm": {
+                        "type": "boolean",
+                        "description": "Confirmation to delete the active note (must be true)",
+                        "default": False
+                    }
+                },
+                "required": ["confirm"]
+            }
+        )
+
+    def run_tool(self, args: dict) -> Sequence[TextContent | ImageContent | EmbeddedResource]:
+        if not args.get("confirm", False):
+            raise RuntimeError("confirm must be set to true to delete the active note")
+
+        api = obsidian.Obsidian(api_key=api_key, host=obsidian_host)
+        api.delete_active_note()
+
+        return [
+            TextContent(
+                type="text",
+                text="Successfully deleted active note"
+            )
+        ]
