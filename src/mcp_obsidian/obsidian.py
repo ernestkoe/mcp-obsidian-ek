@@ -1,5 +1,7 @@
 import requests
 import urllib.parse
+from urllib.parse import quote, unquote
+import unicodedata
 import os
 from typing import Any
 
@@ -44,6 +46,50 @@ class Obsidian():
         except requests.exceptions.RequestException as e:
             raise Exception(f"Request failed: {str(e)}")
 
+    def _encode_path(self, path: str) -> str:
+        """Encode path segments while preserving directory separators.
+        
+        Features:
+        - Idempotent: Prevents double-encoding of already encoded paths
+        - Unicode normalization: Converts NFD to NFC for consistency  
+        - RFC 3986 compliant: Preserves safe characters (-_.~)
+        - Preserves directory structure: "/" separators maintained
+        
+        Args:
+            path: File or directory path (relative to vault root)
+            
+        Returns:
+            URL-encoded path with preserved "/" separators
+            
+        Examples:
+            "simple.md" → "simple.md"
+            "Área/çãõ/test.md" → "%C3%81rea/%C3%A7%C3%A3%C3%B5/test.md"
+            "already%20encoded/file.md" → "already%20encoded/file.md"
+            "emoji/📘 notes.md" → "emoji/%F0%9F%93%98%20notes.md"
+        """
+        if not path:
+            return ""
+        
+        # Split path into segments, removing empty segments
+        segments = [seg for seg in path.strip("/").split("/") if seg]
+        
+        # RFC 3986 unreserved characters that don't need encoding
+        safe_chars = "-_.~"
+        
+        encoded_segments = []
+        for segment in segments:
+            # Prevent double-encoding by decoding first
+            segment = unquote(segment)
+            
+            # Normalize Unicode (NFD → NFC) for consistency across platforms
+            segment = unicodedata.normalize("NFC", segment)
+            
+            # Encode segment while preserving safe characters
+            encoded_segment = quote(segment, safe=safe_chars)
+            encoded_segments.append(encoded_segment)
+        
+        return "/".join(encoded_segments)
+
     def list_files_in_vault(self) -> Any:
         url = f"{self.get_base_url()}/vault/"
         
@@ -57,7 +103,8 @@ class Obsidian():
 
         
     def list_files_in_dir(self, dirpath: str) -> Any:
-        url = f"{self.get_base_url()}/vault/{dirpath}/"
+        encoded_path = self._encode_path(dirpath)
+        url = f"{self.get_base_url()}/vault/{encoded_path}/"
         
         def call_fn():
             response = requests.get(url, headers=self._get_headers(), verify=self.verify_ssl, timeout=self.timeout)
@@ -68,7 +115,8 @@ class Obsidian():
         return self._safe_call(call_fn)
 
     def get_file_contents(self, filepath: str) -> Any:
-        url = f"{self.get_base_url()}/vault/{filepath}"
+        encoded_path = self._encode_path(filepath)
+        url = f"{self.get_base_url()}/vault/{encoded_path}"
     
         def call_fn():
             response = requests.get(url, headers=self._get_headers(), verify=self.verify_ssl, timeout=self.timeout)
@@ -114,7 +162,8 @@ class Obsidian():
         return self._safe_call(call_fn)
     
     def append_content(self, filepath: str, content: str) -> Any:
-        url = f"{self.get_base_url()}/vault/{filepath}"
+        encoded_path = self._encode_path(filepath)
+        url = f"{self.get_base_url()}/vault/{encoded_path}"
         
         def call_fn():
             response = requests.post(
@@ -130,7 +179,8 @@ class Obsidian():
         return self._safe_call(call_fn)
     
     def patch_content(self, filepath: str, operation: str, target_type: str, target: str, content: str) -> Any:
-        url = f"{self.get_base_url()}/vault/{filepath}"
+        encoded_path = self._encode_path(filepath)
+        url = f"{self.get_base_url()}/vault/{encoded_path}"
         
         headers = self._get_headers() | {
             'Content-Type': 'text/markdown',
@@ -147,7 +197,8 @@ class Obsidian():
         return self._safe_call(call_fn)
 
     def put_content(self, filepath: str, content: str) -> Any:
-        url = f"{self.get_base_url()}/vault/{filepath}"
+        encoded_path = self._encode_path(filepath)
+        url = f"{self.get_base_url()}/vault/{encoded_path}"
         
         def call_fn():
             response = requests.put(
@@ -171,7 +222,8 @@ class Obsidian():
         Returns:
             None on success
         """
-        url = f"{self.get_base_url()}/vault/{filepath}"
+        encoded_path = self._encode_path(filepath)
+        url = f"{self.get_base_url()}/vault/{encoded_path}"
         
         def call_fn():
             response = requests.delete(url, headers=self._get_headers(), verify=self.verify_ssl, timeout=self.timeout)
