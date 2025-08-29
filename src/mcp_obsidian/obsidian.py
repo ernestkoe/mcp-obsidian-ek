@@ -47,30 +47,34 @@ class Obsidian():
             raise Exception(f"Request failed: {str(e)}")
 
     def _encode_path(self, path: str) -> str:
-        """Encode path segments while preserving directory separators.
+        """Encode path segments while preserving directory separators and trailing slashes.
         
         Features:
         - Idempotent: Prevents double-encoding of already encoded paths
         - Unicode normalization: Converts NFD to NFC for consistency  
         - RFC 3986 compliant: Preserves safe characters (-_.~)
-        - Preserves directory structure: "/" separators maintained
+        - Preserves directory structure: "/" separators and trailing "/" maintained
         
         Args:
             path: File or directory path (relative to vault root)
             
         Returns:
-            URL-encoded path with preserved "/" separators
+            URL-encoded path with preserved "/" separators and trailing slash
             
         Examples:
             "simple.md" → "simple.md"
+            "Reports/2024/" → "Reports/2024/" (trailing slash preserved)
             "Área/çãõ/test.md" → "%C3%81rea/%C3%A7%C3%A3%C3%B5/test.md"
-            "already%20encoded/file.md" → "already%20encoded/file.md"
+            "already%20encoded/" → "already%20encoded/" (idempotent)
             "emoji/📘 notes.md" → "emoji/%F0%9F%93%98%20notes.md"
         """
         if not path:
             return ""
         
-        # Split path into segments, removing empty segments
+        # Record if path had trailing slash before processing
+        had_trailing_slash = path.endswith('/')
+        
+        # Split path into segments, removing empty segments  
         segments = [seg for seg in path.strip("/").split("/") if seg]
         
         # RFC 3986 unreserved characters that don't need encoding
@@ -88,7 +92,12 @@ class Obsidian():
             encoded_segment = quote(segment, safe=safe_chars)
             encoded_segments.append(encoded_segment)
         
-        return "/".join(encoded_segments)
+        # Join segments and restore trailing slash if originally present
+        encoded_path = "/".join(encoded_segments)
+        if had_trailing_slash and encoded_segments:
+            encoded_path += "/"
+        
+        return encoded_path
 
     def list_files_in_vault(self) -> Any:
         url = f"{self.get_base_url()}/vault/"
@@ -104,7 +113,10 @@ class Obsidian():
         
     def list_files_in_dir(self, dirpath: str) -> Any:
         encoded_path = self._encode_path(dirpath)
-        url = f"{self.get_base_url()}/vault/{encoded_path}/"
+        # Ensure exactly one trailing slash for directory endpoint
+        if not encoded_path.endswith('/'):
+            encoded_path += '/'
+        url = f"{self.get_base_url()}/vault/{encoded_path}"
         
         def call_fn():
             response = requests.get(url, headers=self._get_headers(), verify=self.verify_ssl, timeout=self.timeout)
@@ -601,7 +613,8 @@ class Obsidian():
         Returns:
             None on success
         """
-        url = f"{self.get_base_url()}/open/{urllib.parse.quote(filename, safe='/')}"
+        encoded_filename = self._encode_path(filename)
+        url = f"{self.get_base_url()}/open/{encoded_filename}"
         params = {"newLeaf": str(new_leaf).lower()}
         
         def call_fn():
