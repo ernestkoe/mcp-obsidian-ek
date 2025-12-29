@@ -310,3 +310,366 @@ class TestRecentChangesToolHandler:
 
         assert len(result) == 1
         assert "recent.md" in result[0].text
+
+
+# ============================================================================
+# Active Note Tools (from PR #77)
+# ============================================================================
+
+class TestGetActiveNoteToolHandler:
+    """Tests for the get active note tool."""
+
+    def test_run_tool(self, mock_responses, base_url):
+        mock_responses.add(
+            responses.GET,
+            f"{base_url}/active/",
+            body="# Active Note Content",
+            status=200,
+        )
+
+        handler = tools.GetActiveNoteToolHandler()
+        result = handler.run_tool({})
+
+        assert len(result) == 1
+        assert "Active Note Content" in result[0].text
+
+    def test_run_tool_as_json(self, mock_responses, base_url):
+        mock_responses.add(
+            responses.GET,
+            f"{base_url}/active/",
+            json={"content": "# Active Note", "path": "note.md"},
+            status=200,
+        )
+
+        handler = tools.GetActiveNoteToolHandler()
+        result = handler.run_tool({"as_json": True})
+
+        assert len(result) == 1
+        assert "note.md" in result[0].text
+
+
+class TestAppendToActiveToolHandler:
+    """Tests for the append to active note tool."""
+
+    def test_run_tool(self, mock_responses, base_url):
+        mock_responses.add(
+            responses.POST,
+            f"{base_url}/active/",
+            status=204,
+        )
+
+        handler = tools.AppendToActiveToolHandler()
+        result = handler.run_tool({"content": "New content"})
+
+        assert len(result) == 1
+        assert "Successfully" in result[0].text
+
+    def test_missing_content_raises_error(self):
+        handler = tools.AppendToActiveToolHandler()
+
+        with pytest.raises(RuntimeError, match="content"):
+            handler.run_tool({})
+
+
+class TestReplaceActiveNoteToolHandler:
+    """Tests for the replace active note tool."""
+
+    def test_run_tool(self, mock_responses, base_url):
+        mock_responses.add(
+            responses.PUT,
+            f"{base_url}/active/",
+            status=204,
+        )
+
+        handler = tools.ReplaceActiveNoteToolHandler()
+        result = handler.run_tool({"content": "Replacement content"})
+
+        assert len(result) == 1
+        assert "Successfully" in result[0].text
+
+    def test_missing_content_raises_error(self):
+        handler = tools.ReplaceActiveNoteToolHandler()
+
+        with pytest.raises(RuntimeError, match="content"):
+            handler.run_tool({})
+
+
+class TestPatchActiveNoteToolHandler:
+    """Tests for the patch active note tool."""
+
+    def test_run_tool(self, mock_responses, base_url):
+        mock_responses.add(
+            responses.PATCH,
+            f"{base_url}/active/",
+            status=200,
+        )
+
+        handler = tools.PatchActiveNoteToolHandler()
+        result = handler.run_tool({
+            "operation": "append",
+            "target_type": "heading",
+            "target": "Section",
+            "content": "New text",
+        })
+
+        assert len(result) == 1
+        assert "Successfully" in result[0].text
+
+    def test_missing_args_raises_error(self):
+        handler = tools.PatchActiveNoteToolHandler()
+
+        with pytest.raises(RuntimeError):
+            handler.run_tool({"operation": "append"})  # missing other args
+
+
+class TestDeleteActiveNoteToolHandler:
+    """Tests for the delete active note tool."""
+
+    def test_run_tool(self, mock_responses, base_url):
+        mock_responses.add(
+            responses.DELETE,
+            f"{base_url}/active/",
+            status=204,
+        )
+
+        handler = tools.DeleteActiveNoteToolHandler()
+        result = handler.run_tool({"confirm": True})
+
+        assert len(result) == 1
+        assert "Successfully" in result[0].text
+
+    def test_confirm_required(self):
+        handler = tools.DeleteActiveNoteToolHandler()
+
+        with pytest.raises(RuntimeError, match="confirm"):
+            handler.run_tool({"confirm": False})
+
+        with pytest.raises(RuntimeError, match="confirm"):
+            handler.run_tool({})
+
+
+# ============================================================================
+# Periodic Notes Management Tools (from PR #77)
+# ============================================================================
+
+class TestAppendToPeriodicToolHandler:
+    """Tests for the append to periodic note tool."""
+
+    def test_run_tool(self, mock_responses, base_url):
+        mock_responses.add(
+            responses.POST,
+            f"{base_url}/periodic/daily/",
+            status=204,
+        )
+
+        handler = tools.AppendToPeriodicToolHandler()
+        result = handler.run_tool({"period": "daily", "content": "New content"})
+
+        assert len(result) == 1
+        assert "Successfully" in result[0].text
+        assert "daily" in result[0].text
+
+    def test_invalid_period_raises_error(self):
+        handler = tools.AppendToPeriodicToolHandler()
+
+        with pytest.raises(RuntimeError, match="Invalid period"):
+            handler.run_tool({"period": "hourly", "content": "test"})
+
+    def test_missing_args_raises_error(self):
+        handler = tools.AppendToPeriodicToolHandler()
+
+        with pytest.raises(RuntimeError):
+            handler.run_tool({"period": "daily"})  # missing content
+
+
+class TestReplacePeriodicNoteToolHandler:
+    """Tests for the replace periodic note tool."""
+
+    def test_run_tool(self, mock_responses, base_url):
+        mock_responses.add(
+            responses.PUT,
+            f"{base_url}/periodic/weekly/",
+            status=204,
+        )
+
+        handler = tools.ReplacePeriodicNoteToolHandler()
+        result = handler.run_tool({"period": "weekly", "content": "New weekly content"})
+
+        assert len(result) == 1
+        assert "Successfully" in result[0].text
+        assert "weekly" in result[0].text
+
+    def test_invalid_period_raises_error(self):
+        handler = tools.ReplacePeriodicNoteToolHandler()
+
+        with pytest.raises(RuntimeError, match="Invalid period"):
+            handler.run_tool({"period": "biweekly", "content": "test"})
+
+
+class TestPatchPeriodicNoteToolHandler:
+    """Tests for the patch periodic note tool."""
+
+    def test_run_tool(self, mock_responses, base_url):
+        mock_responses.add(
+            responses.PATCH,
+            f"{base_url}/periodic/monthly/",
+            status=200,
+        )
+
+        handler = tools.PatchPeriodicNoteToolHandler()
+        result = handler.run_tool({
+            "period": "monthly",
+            "operation": "append",
+            "target_type": "heading",
+            "target": "Goals",
+            "content": "New goal",
+        })
+
+        assert len(result) == 1
+        assert "Successfully" in result[0].text
+        assert "monthly" in result[0].text
+
+    def test_invalid_period_raises_error(self):
+        handler = tools.PatchPeriodicNoteToolHandler()
+
+        with pytest.raises(RuntimeError, match="Invalid period"):
+            handler.run_tool({
+                "period": "decade",
+                "operation": "append",
+                "target_type": "heading",
+                "target": "Test",
+                "content": "test",
+            })
+
+
+class TestDeletePeriodicNoteToolHandler:
+    """Tests for the delete periodic note tool."""
+
+    def test_run_tool(self, mock_responses, base_url):
+        mock_responses.add(
+            responses.DELETE,
+            f"{base_url}/periodic/quarterly/",
+            status=204,
+        )
+
+        handler = tools.DeletePeriodicNoteToolHandler()
+        result = handler.run_tool({"period": "quarterly", "confirm": True})
+
+        assert len(result) == 1
+        assert "Successfully" in result[0].text
+        assert "quarterly" in result[0].text
+
+    def test_confirm_required(self):
+        handler = tools.DeletePeriodicNoteToolHandler()
+
+        with pytest.raises(RuntimeError, match="confirm"):
+            handler.run_tool({"period": "daily", "confirm": False})
+
+    def test_invalid_period_raises_error(self):
+        handler = tools.DeletePeriodicNoteToolHandler()
+
+        with pytest.raises(RuntimeError, match="Invalid period"):
+            handler.run_tool({"period": "hourly", "confirm": True})
+
+
+# ============================================================================
+# Commands & UI Control Tools (from PR #77)
+# ============================================================================
+
+class TestListCommandsToolHandler:
+    """Tests for the list commands tool."""
+
+    def test_run_tool(self, mock_responses, base_url):
+        mock_responses.add(
+            responses.GET,
+            f"{base_url}/commands/",
+            json={
+                "commands": [
+                    {"id": "app:open-vault", "name": "Open another vault"},
+                    {"id": "editor:toggle-source", "name": "Toggle source mode"},
+                ]
+            },
+            status=200,
+        )
+
+        handler = tools.ListCommandsToolHandler()
+        result = handler.run_tool({})
+
+        assert len(result) == 1
+        assert "app:open-vault" in result[0].text
+        assert "Open another vault" in result[0].text
+
+    def test_empty_commands(self, mock_responses, base_url):
+        mock_responses.add(
+            responses.GET,
+            f"{base_url}/commands/",
+            json={"commands": []},
+            status=200,
+        )
+
+        handler = tools.ListCommandsToolHandler()
+        result = handler.run_tool({})
+
+        assert len(result) == 1
+        assert "no commands" in result[0].text.lower()
+
+
+class TestExecuteCommandToolHandler:
+    """Tests for the execute command tool."""
+
+    def test_run_tool(self, mock_responses, base_url):
+        mock_responses.add(
+            responses.POST,
+            f"{base_url}/commands/editor%3Atoggle-source/",
+            status=204,
+        )
+
+        handler = tools.ExecuteCommandToolHandler()
+        result = handler.run_tool({"command_id": "editor:toggle-source"})
+
+        assert len(result) == 1
+        assert "Successfully" in result[0].text
+        assert "editor:toggle-source" in result[0].text
+
+    def test_missing_command_id_raises_error(self):
+        handler = tools.ExecuteCommandToolHandler()
+
+        with pytest.raises(RuntimeError, match="command_id"):
+            handler.run_tool({})
+
+
+class TestOpenFileToolHandler:
+    """Tests for the open file tool."""
+
+    def test_run_tool(self, mock_responses, base_url):
+        mock_responses.add(
+            responses.POST,
+            f"{base_url}/open/note.md",
+            status=204,
+        )
+
+        handler = tools.OpenFileToolHandler()
+        result = handler.run_tool({"filename": "note.md"})
+
+        assert len(result) == 1
+        assert "Successfully" in result[0].text
+        assert "note.md" in result[0].text
+
+    def test_run_tool_new_leaf(self, mock_responses, base_url):
+        mock_responses.add(
+            responses.POST,
+            f"{base_url}/open/Projects/todo.md",
+            status=204,
+        )
+
+        handler = tools.OpenFileToolHandler()
+        result = handler.run_tool({"filename": "Projects/todo.md", "new_leaf": True})
+
+        assert len(result) == 1
+        assert "new_leaf=True" in result[0].text
+
+    def test_missing_filename_raises_error(self):
+        handler = tools.OpenFileToolHandler()
+
+        with pytest.raises(RuntimeError, match="filename"):
+            handler.run_tool({})
