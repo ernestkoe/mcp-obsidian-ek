@@ -53,7 +53,6 @@ version_toml = ["pyproject.toml:project.version"]
 version_variables = ["src/mcp_obsidian/__init__.py:__version__"]
 branch = "main"
 commit_parser = "conventional"
-build_command = "uv build"
 allow_zero_version = true  # Allow 0.x versions
 major_on_zero = false  # Don't bump to 1.0 on breaking changes while in 0.x
 
