@@ -2,21 +2,41 @@
 
 MCP server to interact with Obsidian via the Local REST API community plugin.
 
+> **Note**: This is a maintained fork of [MarkusPfundstein/mcp-obsidian](https://github.com/MarkusPfundstein/mcp-obsidian).
+
 <a href="https://glama.ai/mcp/servers/3wko1bhuek"><img width="380" height="200" src="https://glama.ai/mcp/servers/3wko1bhuek/badge" alt="server for Obsidian MCP server" /></a>
 
-## Components
+## Requirements
 
-### Tools
+### Obsidian Plugins
 
-The server implements multiple tools to interact with Obsidian:
+| Plugin | Required | Notes |
+|--------|----------|-------|
+| [Local REST API](https://github.com/coddingtonbear/obsidian-local-rest-api) | Yes | v3.0+ recommended |
+| [Periodic Notes](https://github.com/liamcain/obsidian-periodic-notes) | Optional | Required for weekly/monthly/quarterly/yearly notes |
+| [Dataview](https://github.com/blacksmithgu/obsidian-dataview) | Optional | Required for `get_recent_changes` tool |
 
-- list_files_in_vault: Lists all files and directories in the root directory of your Obsidian vault
-- list_files_in_dir: Lists all files and directories in a specific Obsidian directory
-- get_file_contents: Return the content of a single file in your vault.
-- search: Search for documents matching a specified text query across all files in the vault
-- patch_content: Insert content into an existing note relative to a heading, block reference, or frontmatter field.
-- append_content: Append content to a new or existing file in the vault.
-- delete_file: Delete a file or directory from your vault.
+The core Daily Notes plugin (built into Obsidian) is sufficient for daily periodic notes.
+
+## Tools
+
+The server provides 12 tools:
+
+| Tool | Description |
+|------|-------------|
+| `obsidian_list_files_in_vault` | List all files and directories in vault root |
+| `obsidian_list_files_in_dir` | List files in a specific directory |
+| `obsidian_get_file_contents` | Get content of a single file |
+| `obsidian_batch_get_file_contents` | Get contents of multiple files |
+| `obsidian_simple_search` | Text search across all files |
+| `obsidian_complex_search` | JsonLogic query search |
+| `obsidian_patch_content` | Insert content relative to heading/block/frontmatter |
+| `obsidian_append_content` | Append content to a file |
+| `obsidian_put_content` | Create or overwrite a file |
+| `obsidian_delete_file` | Delete a file or directory |
+| `obsidian_get_periodic_note` | Get current periodic note (daily/weekly/monthly/quarterly/yearly) |
+| `obsidian_get_recent_periodic_notes` | Get recent periodic notes |
+| `obsidian_get_recent_changes` | Get recently modified files (requires Dataview) |
 
 ### Example prompts
 
