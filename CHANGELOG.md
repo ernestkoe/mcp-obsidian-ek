@@ -7,6 +7,18 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 <!-- version list -->
 
+## v0.3.1 (2025-12-29)
+
+### Bug Fixes
+
+- Update .atlas manifest with correct repo URL
+  ([`06b771a`](https://github.com/ernestkoe/mcp-obsidian/commit/06b771a767f7e75b674ea48d14626152b77efaa3))
+
+🤖 Generated with [Claude Code](https://claude.com/claude-code)
+
+Co-Authored-By: Claude Opus 4.5 <noreply@anthropic.com>
+
+
 ## v0.3.0 (2025-12-29)
 
 ### Bug Fixes
