@@ -7,6 +7,14 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 <!-- version list -->
 
+## v0.4.0 (2025-12-31)
+
+### Features
+
+- Add 'limit' of contexts to return in simple search
+  ([`aa3e962`](https://github.com/ernestkoe/mcp-obsidian/commit/aa3e962b658e80802302aa9041ad8b907b24f856))
+
+
 ## v0.3.1 (2025-12-29)
 
 ### Bug Fixes
