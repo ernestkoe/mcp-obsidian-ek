@@ -166,7 +166,12 @@ class SearchToolHandler(ToolHandler):
                     "context_length": {
                         "type": "integer",
                         "description": "How much context to return around the matching string (default: 100)",
-                        "default": 100,
+                        "default": 100
+                    },
+                    "limit": {
+                        "type": "integer",
+                        "description": "How many contexts to return at most (default: 100)",
+                        "default": 100
                     },
                 },
                 "required": ["query"],
@@ -180,14 +185,20 @@ class SearchToolHandler(ToolHandler):
             raise RuntimeError("query argument missing in arguments")
 
         context_length = args.get("context_length", 100)
-
+        limit = args.get("limit", 100)
+        
         api = obsidian.Obsidian(api_key=api_key, host=obsidian_host)
-        results = api.search(args["query"], context_length)
-
+        results = api.search(args["query"], context_length, limit)
+        
         formatted_results = []
+        total_results = 0
         for result in results:
+            if total_results >= limit:
+                break
             formatted_matches = []
             for match in result.get("matches", []):
+                if total_results >= limit:
+                    break
                 context = match.get("context", "")
                 match_pos = match.get("match", {})
                 start = match_pos.get("start", 0)
@@ -196,6 +207,7 @@ class SearchToolHandler(ToolHandler):
                 formatted_matches.append(
                     {"context": context, "match_position": {"start": start, "end": end}}
                 )
+                total_results = total_results + 1
 
             formatted_results.append(
                 {

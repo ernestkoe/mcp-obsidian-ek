@@ -1550,6 +1550,13 @@ paths:
           schema:
             default: 100
             type: "number"
+        - description: "How many contexts to return at most"
+          in: "query"
+          name: "limit"
+          required: false
+          schema:
+            default: 100
+            type: "number"
       responses:
         "200":
           content:
