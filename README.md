@@ -8,23 +8,22 @@ MCP server providing tools to interact with Obsidian via the Local REST API comm
 
 This fork is in active development (`v0.x.x`). The `v1.0.0` release will mark the first stable API. Expect things to be in flux. I am adding tool coverage but will attempt to streamline them to keep our context footprint as small as possible. Currently, I am just exposing REST endpoints I think might be useful as tools, but expect some of these to change.
 
-### Current Status (v0.4.x)
-- 26 tools covering file operations, active notes, periodic notes, and commands
+### Current Status (v0.6.x)
+- 18 tools with ~30% reduced token footprint
 - Template-aware heading insertion
 - Robust path encoding for special characters and Unicode
+- Published to PyPI as `mcp-obsidian-ek`
 
 ### Planned for v1.0.0
-- [ ] **Streamlined tool surface** — Reduce token footprint by consolidating convenience wrappers (e.g., `patch_active` → `get_active` + `patch_content`)
+- [x] **Streamlined tool surface** — Reduced token footprint by ~30% by removing convenience wrappers
+- [x] **Published to PyPI** — Available via `uvx mcp-obsidian-ek`
 - [ ] **Stable API contract** — Tool names, parameters, and behaviors locked for backwards compatibility
 - [ ] **Comprehensive test coverage** — All tools tested with CI
-- [ ] **Published to PyPI** — Available via `uvx mcp-obsidian-ek` with version pinning
 
-### Breaking Changes Expected
-The v1.0.0 release will likely remove convenience tools that can be accomplished with two-step workflows:
+### Breaking Changes from v0.4.x
+The following convenience tools were removed in v0.5.0 (use `get_active`/`get_periodic_note` + file operations instead):
 - `obsidian_post_active`, `obsidian_put_active`, `obsidian_patch_active`, `obsidian_delete_active`
 - `obsidian_post_periodic`, `obsidian_put_periodic`, `obsidian_patch_periodic`, `obsidian_delete_periodic`
-
-These operations will still be possible using `get_active`/`get_periodic_note` followed by the corresponding file operation.
 
 <a href="https://glama.ai/mcp/servers/3wko1bhuek"><img width="380" height="200" src="https://glama.ai/mcp/servers/3wko1bhuek/badge" alt="server for Obsidian MCP server" /></a>
 
@@ -42,7 +41,7 @@ The core Daily Notes plugin (built into Obsidian) is sufficient for daily period
 
 ## Tools
 
-The server implements 26 tools to interact with Obsidian, organized by functionality:
+The server implements 18 tools to interact with Obsidian, organized by functionality:
 
 #### File & Content Operations
 - obsidian_list_files_in_vault: Lists all files and directories in the root directory of your Obsidian vault
@@ -56,19 +55,10 @@ The server implements 26 tools to interact with Obsidian, organized by functiona
 - obsidian_put_content: Create a new file or update the content of an existing file in your vault
 - obsidian_delete_file: Delete a file or directory from your vault
 
-#### Active Note Operations
+#### Active Note & Periodic Notes
 - obsidian_get_active: Get content of the currently active note in Obsidian
-- obsidian_post_active: Append content to the currently active note
-- obsidian_put_active: Replace entire content of the currently active note
-- obsidian_patch_active: Insert/replace content in active note relative to a heading, block reference, or frontmatter field
-- obsidian_delete_active: Delete the currently active note
-
-#### Periodic Notes Management
 - obsidian_get_periodic_note: Get current periodic note for specified period (daily/weekly/monthly/quarterly/yearly)
-- obsidian_post_periodic: Append content to the current periodic note
-- obsidian_put_periodic: Replace entire content of the current periodic note
-- obsidian_patch_periodic: Insert/replace content in periodic note relative to a heading, block reference, or frontmatter field
-- obsidian_delete_periodic: Delete the current periodic note
+- obsidian_get_recent_periodic_notes: Get most recent periodic notes for specified period type
 
 #### Commands & UI Control
 - obsidian_get_commands: List all available Obsidian commands from the command palette
@@ -76,8 +66,7 @@ The server implements 26 tools to interact with Obsidian, organized by functiona
 - obsidian_open_file: Open a file in Obsidian UI, optionally in a new tab/pane
 
 #### Advanced Features
-- obsidian_get_recent_periodic_notes: Get most recent periodic notes for specified period type
-- obsidian_get_recent_changes: Get recently modified files in the vault
+- obsidian_get_recent_changes: Get recently modified files in the vault (requires Dataview plugin)
 - obsidian_dataview_query: Execute a Dataview DQL query against the vault (requires Dataview plugin)
 
 ### Example prompts
@@ -90,25 +79,17 @@ It's good to first instruct Claude to use Obsidian. Then it will always call the
 - Summarize the last meeting notes and put them into a new note 'summary meeting.md'. Add an introduction so that I can send it via email
 - Find all notes containing project deadlines and create a consolidated timeline
 
-#### Active Note Operations  
-- Add this meeting summary to the note I currently have open
-- Replace the active note content with the updated version I'm about to provide
-- Insert a new "Action Items" section under the "Meeting Notes" heading in my active document
-- Append today's accomplishments to whatever note I have open right now
-
-#### Periodic Notes Management
-- Add today's tasks to my daily note
+#### Active Note & Periodic Notes
+- What note do I currently have open? Summarize it for me
 - Get the content of this week's weekly note and summarize the key points
-- Create a monthly review section in my monthly periodic note with this quarter's achievements
-- Append my standup update to today's daily note
 - Show me what's in my quarterly note and help me plan the next quarter
+- What did I write in my daily notes last week?
 
 #### Command Execution & UI Control
 - Open my project notes in a new tab so I can reference them
 - Execute the 'Toggle Reading View' command to switch the current view
 - Show me all available Obsidian commands so I can see what's possible
 - Open the file 'Projects/2024/planning.md' in a new pane
-- Run the command to create a new note from my meeting template
 
 ## Path Encoding & Filename Support
 
