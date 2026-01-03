@@ -7,6 +7,23 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 <!-- version list -->
 
+## v0.5.0 (2026-01-03)
+
+### Features
+
+- Add template-aware heading auto-creation for patch_content
+  ([`88a9fea`](https://github.com/ernestkoe/mcp-obsidian/commit/88a9fea15fcee5b11dfb0cc3ad974a74d522229a))
+
+- Auto-create missing headings when patching (create_heading_if_missing) - Detect templates from
+  frontmatter or folder conventions - Position new headings based on template structure
+  (use_template) - Add explicit template_path parameter for custom templates - Add tests for new
+  functionality
+
+🤖 Generated with [Claude Code](https://claude.com/claude-code)
+
+Co-Authored-By: Claude Opus 4.5 <noreply@anthropic.com>
+
+
 ## v0.4.0 (2025-12-31)
 
 ### Features
