@@ -1,7 +1,7 @@
 [project]
-name = "mcp-obsidian"
+name = "mcp-obsidian-ek"
 version = "0.5.0"
-description = "MCP server to work with Obsidian via the remote REST plugin"
+description = "MCP server to interact with Obsidian via the Local REST API plugin"
 readme = "README.md"
 requires-python = ">=3.11"
 dependencies = [
@@ -39,6 +39,7 @@ dev = [
 
 [project.scripts]
 mcp-obsidian = "mcp_obsidian:main"
+mcp-obsidian-ek = "mcp_obsidian:main"
 
 [tool.pytest.ini_options]
 testpaths = ["tests"]

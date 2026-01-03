@@ -45,7 +45,6 @@ class ListFilesInVaultToolHandler(ToolHandler):
             description="Lists all files and directories in the root directory of your Obsidian vault.",
             inputSchema={"type": "object", "properties": {}, "required": []},
             annotations=ToolAnnotations(
-                title="List Files in Vault",
                 readOnlyHint=True,
             ),
         )
@@ -83,7 +82,6 @@ class ListFilesInDirToolHandler(ToolHandler):
                 "required": ["dirpath"],
             },
             annotations=ToolAnnotations(
-                title="List Files in Directory",
                 readOnlyHint=True,
             ),
         )
@@ -125,7 +123,6 @@ class GetFileContentsToolHandler(ToolHandler):
                 "required": ["filepath"],
             },
             annotations=ToolAnnotations(
-                title="Get File Contents",
                 readOnlyHint=True,
             ),
         )
@@ -249,7 +246,6 @@ class AppendContentToolHandler(ToolHandler):
                 "required": ["filepath", "content"],
             },
             annotations=ToolAnnotations(
-                title="Append Content",
                 destructiveHint=True,
             ),
         )
@@ -422,7 +418,6 @@ class DeleteFileToolHandler(ToolHandler):
                 "required": ["filepath", "confirm"],
             },
             annotations=ToolAnnotations(
-                title="Delete File",
                 destructiveHint=True,
             ),
         )
