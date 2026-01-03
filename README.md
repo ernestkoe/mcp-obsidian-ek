@@ -1,311 +1,183 @@
 # MCP server for Obsidian
 
-MCP server providing tools to interact with Obsidian via the Local REST API community plugin, including active note operations, periodic notes management, and command execution.
+MCP server providing tools to interact with Obsidian via the Local REST API community plugin.
 
 > **Note**: This is a maintained fork of [MarkusPfundstein/mcp-obsidian](https://github.com/MarkusPfundstein/mcp-obsidian).
 
-## Roadmap to v1.0.0
+## Installation
 
-This fork is in active development (`v0.x.x`). The `v1.0.0` release will mark the first stable API. Expect things to be in flux. I am adding tool coverage but will attempt to streamline them to keep our context footprint as small as possible. Currently, I am just exposing REST endpoints I think might be useful as tools, but expect some of these to change.
+### 1. Install the Obsidian Plugin
 
-### Current Status (v0.6.x)
-- 18 tools with ~30% reduced token footprint
-- Template-aware heading insertion
-- Robust path encoding for special characters and Unicode
-- Published to PyPI as `mcp-obsidian-ek`
+Install and enable the [Local REST API](https://github.com/coddingtonbear/obsidian-local-rest-api) community plugin in Obsidian. Copy the API key from the plugin settings.
 
-### Planned for v1.0.0
-- [x] **Streamlined tool surface** — Reduced token footprint by ~30% by removing convenience wrappers
-- [x] **Published to PyPI** — Available via `uvx mcp-obsidian-ek`
-- [ ] **Stable API contract** — Tool names, parameters, and behaviors locked for backwards compatibility
-- [ ] **Comprehensive test coverage** — All tools tested with CI
+### 2. Add to Your MCP Client
 
-### Breaking Changes from v0.4.x
-The following convenience tools were removed in v0.5.0 (use `get_active`/`get_periodic_note` + file operations instead):
-- `obsidian_post_active`, `obsidian_put_active`, `obsidian_patch_active`, `obsidian_delete_active`
-- `obsidian_post_periodic`, `obsidian_put_periodic`, `obsidian_patch_periodic`, `obsidian_delete_periodic`
+Add this server to your MCP client configuration. Examples for common clients:
 
-<a href="https://glama.ai/mcp/servers/3wko1bhuek"><img width="380" height="200" src="https://glama.ai/mcp/servers/3wko1bhuek/badge" alt="server for Obsidian MCP server" /></a>
+**Claude Desktop** (`~/Library/Application Support/Claude/claude_desktop_config.json` on macOS):
+
+```json
+{
+  "mcpServers": {
+    "obsidian": {
+      "command": "uvx",
+      "args": ["mcp-obsidian-ek"],
+      "env": {
+        "OBSIDIAN_API_KEY": "<your_api_key_here>"
+      }
+    }
+  }
+}
+```
+
+**Claude Code** (`~/.claude/settings.json`):
+
+```json
+{
+  "mcpServers": {
+    "obsidian": {
+      "command": "uvx",
+      "args": ["mcp-obsidian-ek"],
+      "env": {
+        "OBSIDIAN_API_KEY": "<your_api_key_here>"
+      }
+    }
+  }
+}
+```
+
+> **Tip**: If `uvx` isn't found, use `which uvx` to get the full path and use that instead.
+
+### Environment Variables
+
+| Variable | Required | Default | Description |
+|----------|----------|---------|-------------|
+| `OBSIDIAN_API_KEY` | Yes | — | API key from Local REST API plugin |
+| `OBSIDIAN_HOST` | No | `127.0.0.1` | Obsidian host address |
+| `OBSIDIAN_PORT` | No | `27124` | Obsidian REST API port |
 
 ## Requirements
 
-### Obsidian Plugins
-
-| Plugin | Required | Notes |
-|--------|----------|-------|
+| Obsidian Plugin | Required | Notes |
+|-----------------|----------|-------|
 | [Local REST API](https://github.com/coddingtonbear/obsidian-local-rest-api) | Yes | v3.0+ recommended |
-| [Periodic Notes](https://github.com/liamcain/obsidian-periodic-notes) | Optional | Required for weekly/monthly/quarterly/yearly notes |
-| [Dataview](https://github.com/blacksmithgu/obsidian-dataview) | Optional | Required for `get_recent_changes` tool |
+| [Periodic Notes](https://github.com/liamcain/obsidian-periodic-notes) | Optional | For weekly/monthly/quarterly/yearly notes |
+| [Dataview](https://github.com/blacksmithgu/obsidian-dataview) | Optional | For `get_recent_changes` tool |
 
 The core Daily Notes plugin (built into Obsidian) is sufficient for daily periodic notes.
 
 ## Tools
 
-The server implements 18 tools to interact with Obsidian, organized by functionality:
+18 tools organized by functionality:
 
-#### File & Content Operations
-- obsidian_list_files_in_vault: Lists all files and directories in the root directory of your Obsidian vault
-- obsidian_list_files_in_dir: Lists all files and directories in a specific Obsidian directory
-- obsidian_get_file_contents: Return the content of a single file in your vault
-- obsidian_batch_get_file_contents: Return the contents of multiple files in your vault, concatenated with headers
-- obsidian_simple_search: Search for documents matching a specified text query across all files in the vault
-- obsidian_complex_search: Complex search for documents using JsonLogic queries with glob and regexp support
-- obsidian_patch_content: Insert content into an existing note relative to a heading, block reference, or frontmatter field. Automatically creates missing headings with template-aware positioning
-- obsidian_append_content: Append content to a new or existing file in the vault
-- obsidian_put_content: Create a new file or update the content of an existing file in your vault
-- obsidian_delete_file: Delete a file or directory from your vault
+### File & Content Operations
+| Tool | Description |
+|------|-------------|
+| `obsidian_list_files_in_vault` | List all files and directories in vault root |
+| `obsidian_list_files_in_dir` | List files in a specific directory |
+| `obsidian_get_file_contents` | Get content of a single file |
+| `obsidian_batch_get_file_contents` | Get contents of multiple files |
+| `obsidian_simple_search` | Text search across all files |
+| `obsidian_complex_search` | JsonLogic queries with glob/regexp |
+| `obsidian_append_content` | Append to a file |
+| `obsidian_patch_content` | Insert content relative to heading/block/frontmatter |
+| `obsidian_put_content` | Create or replace a file |
+| `obsidian_delete_file` | Delete a file or directory |
 
-#### Active Note & Periodic Notes
-- obsidian_get_active: Get content of the currently active note in Obsidian
-- obsidian_get_periodic_note: Get current periodic note for specified period (daily/weekly/monthly/quarterly/yearly)
-- obsidian_get_recent_periodic_notes: Get most recent periodic notes for specified period type
+### Active Note & Periodic Notes
+| Tool | Description |
+|------|-------------|
+| `obsidian_get_active` | Get the currently open note |
+| `obsidian_get_periodic_note` | Get daily/weekly/monthly/quarterly/yearly note |
+| `obsidian_get_recent_periodic_notes` | Get recent periodic notes |
 
-#### Commands & UI Control
-- obsidian_get_commands: List all available Obsidian commands from the command palette
-- obsidian_execute_command: Execute a specific Obsidian command by its ID
-- obsidian_open_file: Open a file in Obsidian UI, optionally in a new tab/pane
+### Commands & UI
+| Tool | Description |
+|------|-------------|
+| `obsidian_get_commands` | List available Obsidian commands |
+| `obsidian_execute_command` | Execute a command by ID |
+| `obsidian_open_file` | Open a file in Obsidian UI |
 
-#### Advanced Features
-- obsidian_get_recent_changes: Get recently modified files in the vault (requires Dataview plugin)
-- obsidian_dataview_query: Execute a Dataview DQL query against the vault (requires Dataview plugin)
+### Advanced
+| Tool | Description |
+|------|-------------|
+| `obsidian_get_recent_changes` | Recently modified files (requires Dataview) |
+| `obsidian_dataview_query` | Execute DQL queries (requires Dataview) |
 
-### Example prompts
+## Example Prompts
 
-It's good to first instruct Claude to use Obsidian. Then it will always call the tool.
+**File operations:**
+- "Get the contents of my last meeting note and summarize it"
+- "Search for all files mentioning 'project deadlines'"
+- "Create a new note called 'summary.md' with this content"
 
-#### File & Search Operations
-- Get the contents of the last architecture call note and summarize them
-- Search for all files where Azure CosmosDb is mentioned and quickly explain to me the context in which it is mentioned
-- Summarize the last meeting notes and put them into a new note 'summary meeting.md'. Add an introduction so that I can send it via email
-- Find all notes containing project deadlines and create a consolidated timeline
+**Active note & periodic notes:**
+- "What note do I have open? Summarize it"
+- "Show me this week's weekly note"
+- "What did I write in my daily notes last week?"
 
-#### Active Note & Periodic Notes
-- What note do I currently have open? Summarize it for me
-- Get the content of this week's weekly note and summarize the key points
-- Show me what's in my quarterly note and help me plan the next quarter
-- What did I write in my daily notes last week?
+**Commands & UI:**
+- "Open my project notes in a new tab"
+- "Show me all available Obsidian commands"
 
-#### Command Execution & UI Control
-- Open my project notes in a new tab so I can reference them
-- Execute the 'Toggle Reading View' command to switch the current view
-- Show me all available Obsidian commands so I can see what's possible
-- Open the file 'Projects/2024/planning.md' in a new pane
+## Advanced Features
 
-## Path Encoding & Filename Support
+### Path Encoding
 
-The server includes robust path encoding that handles filenames with spaces, special characters, Unicode, and emojis. All file operations work seamlessly with complex filenames.
+Handles filenames with spaces, special characters, Unicode, and emojis:
 
-### Supported Filename Types
-
-- **Spaces**: `Projects/2024 Q1/meeting notes.md`
-- **Unicode characters**: `Área/configuração/São Paulo.md`  
-- **Special characters**: `Research (2024)/data #1 & analysis + results.md`
-- **Emojis**: `Projects 🚀/📘 documentation/notes ⭐.md`
-- **Mixed types**: `Área (Special) & More + [Data] = Value #1 🚀.md`
-
-### Technical Features
-
-- **Idempotent**: Prevents double-encoding of already encoded paths
-- **Unicode normalization**: Normalizes to NFC for cross-platform consistency
-- **RFC 3986 compliant**: Preserves safe characters (-_.~) while encoding others  
-- **Directory structure preservation**: Maintains "/" separators and trailing "/" slashes
-- **Backward compatible**: No changes to existing simple filename behavior
-
-### Example Operations
-
-```python
-# All these filename types work with any operation:
-obsidian_get_file_contents("Projects/Meeting Notes 📝.md")
-obsidian_append_content("Área/configuração.md", "New content")
-obsidian_list_files_in_dir("Special (Folder) & More")
-obsidian_patch_content("Research #1/data + analysis.md", ...)
-obsidian_list_files_in_dir("Reports/2024/")
+```
+Projects/2024 Q1/meeting notes.md
+Área/configuração/São Paulo.md
+Research (2024)/data #1 & analysis.md
+Projects/documentation/notes.md
 ```
 
-## Template-Aware Heading Insertion
+### Template-Aware Heading Insertion
 
-When using `obsidian_patch_content` (or similar patch operations) to insert content under a heading that doesn't exist, the server automatically creates the heading. By default, it uses template-aware positioning to maintain consistent document structure.
+When using `obsidian_patch_content` to insert content under a heading that doesn't exist, the heading is auto-created in the correct position based on your template structure.
 
-### How It Works
+**How it works:**
+1. Checks the note's frontmatter for a `template:` field
+2. Falls back to folder convention: `Daily Notes/*.md` uses `Templates/Daily Notes.md`
+3. Inserts new headings in template order (not appended to end)
 
-1. **Auto-create missing headings**: When you patch content to a heading that doesn't exist, the heading is created automatically (enabled by default, can be disabled with `create_heading_if_missing: false`)
+**Example:** If your template has `## Todos`, `## Notes`, `## Journal` and your note only has Todos and Journal, patching to "Notes" inserts it between them.
 
-2. **Template detection**: The server looks for a template to determine where the new heading should be inserted:
-   - First checks the note's frontmatter for a `template:` field
-   - Falls back to folder convention: `Daily Notes/*.md` → `Templates/Daily Notes.md`
-
-3. **Position-aware insertion**: If a template is found, the new heading is inserted in the correct position based on the template's heading order, rather than appended to the end
-
-### Example
-
-If your template (`Templates/Daily Notes.md`) has:
-```markdown
-## Todos
-## Notes
-## Journal
-```
-
-And your daily note only has `## Todos` and `## Journal`, patching content to `Notes` will insert it between them—not at the end.
-
-### Frontmatter Template Reference
-
-Add a `template:` field to your note's frontmatter to specify which template defines the heading structure:
-
-```yaml
----
-template: Daily Note.md
----
-```
-
-The server will look for `Templates/Daily Note.md` (or the full path if provided).
-
-### Parameters
-
+**Parameters:**
 | Parameter | Default | Description |
 |-----------|---------|-------------|
-| `create_heading_if_missing` | `true` | Create the heading if it doesn't exist |
-| `template_path` | auto-detect | Explicit path to template file |
-| `use_template` | `true` | Use template for heading positioning |
+| `create_heading_if_missing` | `true` | Auto-create missing headings |
+| `template_path` | auto | Explicit template path |
+| `use_template` | `true` | Use template for positioning |
 
-### Disabling Template Positioning
+---
 
-To always append new headings to the end (original behavior), set `use_template: false`:
+## Project Status
 
-```python
-obsidian_patch_content(
-    filepath="Daily Notes/2024-01-15.md",
-    operation="append",
-    target_type="heading",
-    target="New Section",
-    content="Content here",
-    use_template=False  # Always append to end
-)
-```
+This fork is in active development (`v0.x.x`). The API may change before v1.0.0.
 
-## Configuration
+### Current (v0.6.x)
+- 18 tools with ~30% reduced token footprint
+- Template-aware heading insertion
+- Robust path encoding
+- Published to PyPI as `mcp-obsidian-ek`
 
-### Obsidian REST API Key
+### Planned for v1.0.0
+- [x] Streamlined tool surface
+- [x] Published to PyPI
+- [ ] Stable API contract
+- [ ] Comprehensive test coverage
 
-There are two ways to configure the environment with the Obsidian REST API Key. 
+### Breaking Changes from v0.4.x
+These convenience tools were removed (use `get_active`/`get_periodic_note` + file operations instead):
+- `obsidian_post_active`, `obsidian_put_active`, `obsidian_patch_active`, `obsidian_delete_active`
+- `obsidian_post_periodic`, `obsidian_put_periodic`, `obsidian_patch_periodic`, `obsidian_delete_periodic`
 
-1. Add to server config (preferred)
+---
 
-```json
-{
-  "mcp-obsidian-ek": {
-    "command": "uvx",
-    "args": [
-      "mcp-obsidian-ek"
-    ],
-    "env": {
-      "OBSIDIAN_API_KEY": "<your_api_key_here>"
-    }
-  }
-}
-```
+## Contributing
 
-Note: `OBSIDIAN_HOST` (default: 127.0.0.1) and `OBSIDIAN_PORT` (default: 27124) are optional.
+See [CONTRIBUTING.md](CONTRIBUTING.md) for development setup, architecture overview, and how to add new tools.
 
-Sometimes Claude has issues detecting the location of uvx. You can use `which uvx` to find and paste the full path in the config.
-
-2. Create a `.env` file in the working directory with the following required variables:
-
-```
-OBSIDIAN_API_KEY=your_api_key_here
-OBSIDIAN_HOST=your_obsidian_host
-OBSIDIAN_PORT=your_obsidian_port
-```
-
-Note:
-- You can find the API key in the Obsidian plugin config
-- Default port is 27124 if not specified
-- Default host is 127.0.0.1 if not specified
-
-## Quickstart
-
-### Install
-
-#### Obsidian REST API
-
-You need the Obsidian REST API community plugin running: https://github.com/coddingtonbear/obsidian-local-rest-api
-
-Install and enable it in the settings and copy the api key.
-
-#### Claude Desktop
-
-On MacOS: `~/Library/Application\ Support/Claude/claude_desktop_config.json`
-
-On Windows: `%APPDATA%/Claude/claude_desktop_config.json`
-
-<details>
-  <summary>Development (from local repo)</summary>
-
-```json
-{
-  "mcpServers": {
-    "mcp-obsidian-ek": {
-      "command": "uv",
-      "args": [
-        "--directory",
-        "/path/to/mcp-obsidian",
-        "run",
-        "mcp-obsidian-ek"
-      ],
-      "env": {
-        "OBSIDIAN_API_KEY": "<your_api_key_here>"
-      }
-    }
-  }
-}
-```
-</details>
-
-<details>
-  <summary>Published (from PyPI)</summary>
-
-```json
-{
-  "mcpServers": {
-    "mcp-obsidian-ek": {
-      "command": "uvx",
-      "args": [
-        "mcp-obsidian-ek"
-      ],
-      "env": {
-        "OBSIDIAN_API_KEY": "<your_api_key_here>"
-      }
-    }
-  }
-}
-```
-</details>
-
-## Development
-
-### Building
-
-To prepare the package for distribution:
-
-1. Sync dependencies and update lockfile:
-```bash
-uv sync
-```
-
-### Debugging
-
-Since MCP servers run over stdio, debugging can be challenging. For the best debugging
-experience, we strongly recommend using the [MCP Inspector](https://github.com/modelcontextprotocol/inspector).
-
-You can launch the MCP Inspector via [`npm`](https://docs.npmjs.com/downloading-and-installing-node-js-and-npm) with this command:
-
-```bash
-npx @modelcontextprotocol/inspector uv --directory /path/to/mcp-obsidian run mcp-obsidian-ek
-```
-
-Upon launching, the Inspector will display a URL that you can access in your browser to begin debugging.
-
-You can also watch the server logs with this command:
-
-```bash
-tail -n 20 -f ~/Library/Logs/Claude/mcp-server-mcp-obsidian-ek.log
-```
+<a href="https://glama.ai/mcp/servers/3wko1bhuek"><img width="380" height="200" src="https://glama.ai/mcp/servers/3wko1bhuek/badge" alt="MCP server for Obsidian" /></a>
