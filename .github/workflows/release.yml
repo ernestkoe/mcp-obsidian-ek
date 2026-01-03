@@ -37,6 +37,7 @@ jobs:
   release:
     needs: test
     runs-on: ubuntu-latest
+    environment: pypi
     concurrency: release
     permissions:
       contents: write
