@@ -143,6 +143,45 @@ class GetFileContentsToolHandler(ToolHandler):
             )
         ]
 
+class GetFileContentsByNameToolHandler(ToolHandler):
+    def __init__(self):
+        super().__init__("obsidian_get_file_contents_by_name")
+
+    def get_tool_description(self):
+        return Tool(
+            name=self.name,
+            description="Return the contents of a single file in your vault by the note-name. Useful to open links such as [[note-name]] or [[note-name|note-alias]].",
+            inputSchema={
+                "type": "object",
+                "properties": {
+                    "name": {
+                        "type": "string",
+                        "description": "Name of the file to open"
+                    },
+                },
+                "required": ["name"],
+            },
+            annotations=ToolAnnotations(
+                title="Get File Contents by Name",
+                readOnlyHint=True,
+            ),
+        )
+    
+    def run_tool(
+        self, args: dict
+    ) -> Sequence[TextContent | ImageContent | EmbeddedResource]:
+        if "name" not in args:
+            raise RuntimeError("name argument missing in arguments")
+
+        api = obsidian.Obsidian(api_key=api_key, host=obsidian_host)
+
+        content = api.get_file_contents_by_name(args["name"])
+
+        return [
+            TextContent(
+                type="text", text=json.dumps(content, indent=2, ensure_ascii=False)
+            )
+        ]
 
 class SearchToolHandler(ToolHandler):
     def __init__(self):
