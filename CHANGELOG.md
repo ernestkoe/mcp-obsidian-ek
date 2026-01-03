@@ -7,6 +7,14 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 <!-- version list -->
 
+## v0.6.2 (2026-01-03)
+
+### Bug Fixes
+
+- Add __token__ user for PyPI publish, remove .atlas from repo
+  ([`3450526`](https://github.com/ernestkoe/mcp-obsidian-ek/commit/34505267867182f5457c33cf887f5742adae5285))
+
+
 ## v0.6.1 (2026-01-03)
 
 ### Bug Fixes
