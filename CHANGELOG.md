@@ -7,6 +7,47 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 <!-- version list -->
 
+## v0.6.0 (2026-01-03)
+
+### Features
+
+- Prepare for PyPI publishing as mcp-obsidian-ek
+  ([#2](https://github.com/ernestkoe/mcp-obsidian-ek/pull/2),
+  [`0391497`](https://github.com/ernestkoe/mcp-obsidian-ek/commit/039149781a83c74221466115774ecd4dd284a42d))
+
+* refactor: Streamline tools to reduce token footprint by 30%
+
+- Remove 8 redundant write tools for active/periodic notes (use filepath-based tools after GET
+  instead) - Dedupe complex_search examples (remove from parameter schema) - Remove unused methods
+  from obsidian.py client - Update tests to match reduced tool set
+
+Tools: 26 → 18 | Tokens: ~3,514 → ~2,447 (-30%)
+
+Removed tools: - obsidian_post_active, obsidian_put_active, obsidian_patch_active,
+  obsidian_delete_active - obsidian_post_periodic, obsidian_put_periodic, obsidian_patch_periodic,
+  obsidian_delete_periodic
+
+Workflow: Use obsidian_get_active or obsidian_get_periodic_note (with as_json=true) to get the
+  filepath, then use standard file tools (append_content, put_content, etc.)
+
+🤖 Generated with [Claude Code](https://claude.com/claude-code)
+
+Co-Authored-By: Claude Opus 4.5 <noreply@anthropic.com>
+
+* feat: Prepare for PyPI publishing as mcp-obsidian-ek
+
+- Rename package to mcp-obsidian-ek (upstream owns mcp-obsidian on PyPI) - Add dual CLI entry
+  points: mcp-obsidian-ek (new) + mcp-obsidian (compat) - Add PyPI publish step to release workflow
+  - Add v1.0.0 roadmap to README - Update all config examples with new package name - Remove
+  inconsistent title annotations from tools - Simplify config examples (optional host/port)
+
+* fix: Add hatch build config for renamed package
+
+---------
+
+Co-authored-by: Claude Opus 4.5 <noreply@anthropic.com>
+
+
 ## v0.5.0 (2026-01-03)
 
 ### Features
