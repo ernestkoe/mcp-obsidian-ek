@@ -188,6 +188,9 @@ class Obsidian:
         return self._safe_call(call_fn)
 
     def get_file_contents_by_name(self, name: str) -> Any:
+        if "/" in name:
+            name = name.split("/")[-1] # remove path-parts. Agents may include this by mistake, but we can be friendly here
+
         files = self.list_all_files_in_vault_recursively(".", name)
 
         # file_name_in_file_path_is_name("some/path/"+name+".md") => true

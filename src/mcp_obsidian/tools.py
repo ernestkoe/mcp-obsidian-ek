@@ -189,13 +189,13 @@ class GetFileContentsByNameToolHandler(ToolHandler):
     def get_tool_description(self):
         return Tool(
             name=self.name,
-            description="Return the contents of a single file in your vault by the note-name. Use this to links to 'Note Name.md' such as [[Note Name]] or [[Note Name|My Note Alias]] or [[Note Name#some-note-section-heading]] or [[Note Name^some-block-reference]]. The note name is always the part before the '|' or ']]' or '#' or '^'.",
+            description="Return the contents of a single file in your vault by the note-name. Use this to links to 'Note Name.md' such as [[Note Name]] or [[Note Name|My Note Alias]] or [[Note Name#some-note-section-heading]] or [[Note Name^some-block-reference]]. The note name is always the part before the '|' or ']]' or '#' or '^'. Any path part will be ignored.",
             inputSchema={
                 "type": "object",
                 "properties": {
                     "name": {
                         "type": "string",
-                        "description": "Name of the file to open (without the '.md'; case-sensitive)"
+                        "description": "Name of the file to open (without the '.md'; case-sensitive)."
                     },
                 },
                 "required": ["name"],
