@@ -147,6 +147,9 @@ class Obsidian:
 
         return self._safe_call(call_fn)
 
+    def query_files_recursively(self, query: str) -> Any:
+        return self.list_all_files_in_vault_recursively(".", query)
+
     # walks though all directories in the vault recursively and returns a list of all filepaths containing the query term
     def list_all_files_in_vault_recursively(self, directory: str, query: str) -> Any:
         if not directory.endswith("/"):

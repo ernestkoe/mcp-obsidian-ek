@@ -49,6 +49,7 @@ def get_tool_handler(name: str) -> tools.ToolHandler | None:
 
 add_tool_handler(tools.ListFilesInDirToolHandler())
 add_tool_handler(tools.ListFilesInVaultToolHandler())
+add_tool_handler(tools.QueryFilesRecursivelyToolHandler())
 add_tool_handler(tools.GetFileContentsToolHandler())
 add_tool_handler(tools.GetFileContentsByNameToolHandler())
 add_tool_handler(tools.SearchToolHandler())

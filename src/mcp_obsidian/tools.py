@@ -103,6 +103,45 @@ class ListFilesInDirToolHandler(ToolHandler):
             )
         ]
 
+class QueryFilesRecursivelyToolHandler(ToolHandler):
+    def __init__(self):
+        super().__init__("obsidian_query_files_recursively")
+
+    def get_tool_description(self):
+        return Tool(
+            name=self.name,
+            description="Lists all files (recursively inside the entire vault) which contain 'query' in filename.",
+            inputSchema={
+                "type": "object",
+                "properties": {
+                    "query": {
+                        "type": "string",
+                        "description": "The search term to query for in the file names",
+                    },
+                },
+                "required": ["query"],
+            },
+            annotations=ToolAnnotations(
+                title="Query Files Recursively",
+                readOnlyHint=True,
+            ),
+        )
+
+    def run_tool(
+        self, args: dict
+    ) -> Sequence[TextContent | ImageContent | EmbeddedResource]:
+        if "query" not in args:
+            raise RuntimeError("query argument missing in arguments")
+
+        api = obsidian.Obsidian(api_key=api_key, host=obsidian_host)
+
+        files = api.query_files_recursively(args["query"])
+
+        return [
+            TextContent(
+                type="text", text=json.dumps(files, indent=2, ensure_ascii=False)
+            )
+        ]
 
 class GetFileContentsToolHandler(ToolHandler):
     def __init__(self):
@@ -111,7 +150,7 @@ class GetFileContentsToolHandler(ToolHandler):
     def get_tool_description(self):
         return Tool(
             name=self.name,
-            description="Return the content of a single file in your vault.",
+            description="Return the content of a single file in your vault. Use 'obsidian_get_file_contents_by_name' instead, if only the filename but not the filepath is known.",
             inputSchema={
                 "type": "object",
                 "properties": {
@@ -151,13 +190,13 @@ class GetFileContentsByNameToolHandler(ToolHandler):
     def get_tool_description(self):
         return Tool(
             name=self.name,
-            description="Return the contents of a single file in your vault by the note-name. Useful to open links such as [[note-name]] or [[note-name|note-alias]].",
+            description="Return the contents of a single file in your vault by the note-name. USe this to links such as [[Note Name]] or [[Note Name|My Note Alias]].",
             inputSchema={
                 "type": "object",
                 "properties": {
                     "name": {
                         "type": "string",
-                        "description": "Name of the file to open"
+                        "description": "Name of the file to open (without the '.md')"
                     },
                 },
                 "required": ["name"],
