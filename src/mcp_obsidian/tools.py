@@ -115,7 +115,7 @@ class QueryFilesRecursivelyToolHandler(ToolHandler):
                 "properties": {
                     "query": {
                         "type": "string",
-                        "description": "The search term to query for in the file names (case-insensitive)",
+                        "description": "The text to search for in file names (case-insensitive). E.g. 'dwarf' will match 'Astronomy/Brown Dwarfs.md'.",
                     },
                 },
                 "required": ["query"],
@@ -155,7 +155,7 @@ class GetFileContentsToolHandler(ToolHandler):
                 "properties": {
                     "filepath": {
                         "type": "string",
-                        "description": "Path to the relevant file (relative to your vault root).",
+                        "description": "Path to the relevant file (relative to your vault root). E.g. 'Astronomy/Brown Dwarfs.md'",
                         "format": "path",
                     },
                 },
@@ -195,7 +195,7 @@ class GetFileContentsByNameToolHandler(ToolHandler):
                 "properties": {
                     "name": {
                         "type": "string",
-                        "description": "Name of the file to open (without the '.md'; case-sensitive)."
+                        "description": "Name of the file to open (without the '.md'; case-sensitive). E.g. 'Brown Dwarfs' to open file 'Astronomy/Brown Dwarfs.md'."
                     },
                 },
                 "required": ["name"],
