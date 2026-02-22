@@ -1,5 +1,7 @@
 # MCP server for Obsidian
 
+> **Archived**: This project is no longer actively maintained. The approach of routing through a REST API plugin adds unnecessary complexity -- Obsidian vaults are markdown files on disk, and working with them directly via Obsidian's native CLI is simpler and more reliable. This repo remains available as a reference.
+
 MCP server providing tools to interact with Obsidian via the Local REST API community plugin.
 
 > **Note**: This is a maintained fork of [MarkusPfundstein/mcp-obsidian](https://github.com/MarkusPfundstein/mcp-obsidian).
